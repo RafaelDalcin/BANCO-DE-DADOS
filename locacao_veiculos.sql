@@ -5,7 +5,7 @@
 -- Dumped from database version 14.4 (Ubuntu 14.4-1.pgdg22.04+1)
 -- Dumped by pg_dump version 14.4 (Ubuntu 14.4-1.pgdg22.04+1)
 
--- Started on 2022-06-30 14:19:14 -03
+-- Started on 2022-07-01 13:57:36 -03
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -32,13 +32,59 @@ CREATE TABLE public.carros (
     id_modelos integer NOT NULL,
     descricao character varying(200) NOT NULL,
     placa character varying(100) NOT NULL,
-    valor_diaria character varying NOT NULL,
+    valor_diaria numeric(15,2) NOT NULL,
     renavam character varying(100),
     ano_lancamento character varying(4) NOT NULL
 );
 
 
 ALTER TABLE public.carros OWNER TO postgres;
+
+--
+-- TOC entry 212 (class 1259 OID 17078)
+-- Name: modelos; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.modelos (
+    id integer NOT NULL,
+    id_marcas integer NOT NULL,
+    nome character varying(200) NOT NULL
+);
+
+
+ALTER TABLE public.modelos OWNER TO postgres;
+
+--
+-- TOC entry 227 (class 1259 OID 17188)
+-- Name: ano_lancamento_maior_igual_2000; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.ano_lancamento_maior_igual_2000 AS
+ SELECT m.nome,
+    c.ano_lancamento,
+    c.descricao
+   FROM (public.carros c
+     JOIN public.modelos m ON ((c.id_modelos = m.id)))
+  WHERE ((c.ano_lancamento)::text >= '2000'::text);
+
+
+ALTER TABLE public.ano_lancamento_maior_igual_2000 OWNER TO postgres;
+
+--
+-- TOC entry 226 (class 1259 OID 17184)
+-- Name: ano_lancamento_menor_2000; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.ano_lancamento_menor_2000 AS
+ SELECT m.nome,
+    c.ano_lancamento,
+    c.descricao
+   FROM (public.carros c
+     JOIN public.modelos m ON ((c.id_modelos = m.id)))
+  WHERE ((c.ano_lancamento)::text < '2000'::text);
+
+
+ALTER TABLE public.ano_lancamento_menor_2000 OWNER TO postgres;
 
 --
 -- TOC entry 213 (class 1259 OID 17089)
@@ -57,7 +103,7 @@ CREATE SEQUENCE public.carros_id_seq
 ALTER TABLE public.carros_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3430 (class 0 OID 0)
+-- TOC entry 3470 (class 0 OID 0)
 -- Dependencies: 213
 -- Name: carros_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -96,7 +142,7 @@ CREATE SEQUENCE public.cliente_enderecos_id_seq
 ALTER TABLE public.cliente_enderecos_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3431 (class 0 OID 0)
+-- TOC entry 3471 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: cliente_enderecos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -139,7 +185,7 @@ CREATE SEQUENCE public.clientes_id_seq
 ALTER TABLE public.clientes_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3432 (class 0 OID 0)
+-- TOC entry 3472 (class 0 OID 0)
 -- Dependencies: 215
 -- Name: clientes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -181,7 +227,7 @@ CREATE SEQUENCE public.enderecos_id_seq
 ALTER TABLE public.enderecos_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3433 (class 0 OID 0)
+-- TOC entry 3473 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: enderecos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -222,7 +268,7 @@ CREATE SEQUENCE public.locacao_id_seq
 ALTER TABLE public.locacao_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3434 (class 0 OID 0)
+-- TOC entry 3474 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: locacao_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -260,27 +306,13 @@ CREATE SEQUENCE public.marcas_id_seq
 ALTER TABLE public.marcas_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3435 (class 0 OID 0)
+-- TOC entry 3475 (class 0 OID 0)
 -- Dependencies: 209
 -- Name: marcas_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.marcas_id_seq OWNED BY public.marcas.id;
 
-
---
--- TOC entry 212 (class 1259 OID 17078)
--- Name: modelos; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.modelos (
-    id integer NOT NULL,
-    id_marcas integer NOT NULL,
-    nome character varying(200) NOT NULL
-);
-
-
-ALTER TABLE public.modelos OWNER TO postgres;
 
 --
 -- TOC entry 211 (class 1259 OID 17077)
@@ -299,7 +331,7 @@ CREATE SEQUENCE public.modelos_id_seq
 ALTER TABLE public.modelos_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3436 (class 0 OID 0)
+-- TOC entry 3476 (class 0 OID 0)
 -- Dependencies: 211
 -- Name: modelos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -308,7 +340,112 @@ ALTER SEQUENCE public.modelos_id_seq OWNED BY public.modelos.id;
 
 
 --
--- TOC entry 3241 (class 2604 OID 17093)
+-- TOC entry 230 (class 1259 OID 17201)
+-- Name: nome_clientes_alugaram_mes_5; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.nome_clientes_alugaram_mes_5 AS
+ SELECT c.nome,
+    c.telefone,
+    c.email,
+    c.cpf
+   FROM (public.locacao l
+     JOIN public.clientes c ON ((l.id_clientes = c.id)))
+  WHERE ((l.data_inicial >= '2022-05-01'::date) AND (l.data_inicial <= '2022-05-31'::date));
+
+
+ALTER TABLE public.nome_clientes_alugaram_mes_5 OWNER TO postgres;
+
+--
+-- TOC entry 229 (class 1259 OID 17197)
+-- Name: nome_telefone_pelo_ddd; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.nome_telefone_pelo_ddd AS
+ SELECT clientes.nome,
+    clientes.telefone
+   FROM public.clientes
+  WHERE ((clientes.telefone)::text ~~ '(55)%'::text);
+
+
+ALTER TABLE public.nome_telefone_pelo_ddd OWNER TO postgres;
+
+--
+-- TOC entry 228 (class 1259 OID 17192)
+-- Name: valor_diaria_menor_preço; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public."valor_diaria_menor_preço" AS
+ SELECT ma.nome AS nome_marca,
+    m.nome AS nome_modelo,
+    c.ano_lancamento,
+    c.placa,
+    c.valor_diaria
+   FROM ((public.carros c
+     JOIN public.modelos m ON ((c.id_modelos = m.id)))
+     JOIN public.marcas ma ON ((m.id_marcas = ma.id)))
+  WHERE (c.valor_diaria < (200)::numeric)
+  ORDER BY c.valor_diaria;
+
+
+ALTER TABLE public."valor_diaria_menor_preço" OWNER TO postgres;
+
+--
+-- TOC entry 224 (class 1259 OID 17176)
+-- Name: vw_nome_endereco_cliente_uf_rs; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.vw_nome_endereco_cliente_uf_rs AS
+ SELECT c.nome,
+    e.estado
+   FROM ((public.cliente_enderecos ce
+     JOIN public.clientes c ON ((ce.id_clientes = c.id)))
+     JOIN public.enderecos e ON ((ce.id_enderecos = e.id)))
+  WHERE ((e.estado)::text = 'RS'::text);
+
+
+ALTER TABLE public.vw_nome_endereco_cliente_uf_rs OWNER TO postgres;
+
+--
+-- TOC entry 225 (class 1259 OID 17180)
+-- Name: vw_nome_endereco_cliente_uf_sc; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.vw_nome_endereco_cliente_uf_sc AS
+ SELECT c.nome,
+    e.estado
+   FROM ((public.cliente_enderecos ce
+     JOIN public.clientes c ON ((ce.id_clientes = c.id)))
+     JOIN public.enderecos e ON ((ce.id_enderecos = e.id)))
+  WHERE ((e.estado)::text = 'SC'::text);
+
+
+ALTER TABLE public.vw_nome_endereco_cliente_uf_sc OWNER TO postgres;
+
+--
+-- TOC entry 223 (class 1259 OID 17171)
+-- Name: vw_total_pagar; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.vw_total_pagar AS
+ SELECT cl.nome,
+    md.nome AS veiculo,
+    c.placa,
+    c.ano_lancamento,
+    c.valor_diaria,
+    l.data_inicial,
+    l.data_final,
+    concat('R$ ', (((l.data_final - l.data_inicial))::numeric * c.valor_diaria)) AS total_pagar
+   FROM (((public.locacao l
+     JOIN public.carros c ON ((l.id_carros = c.id)))
+     JOIN public.clientes cl ON ((l.id_clientes = cl.id)))
+     JOIN public.modelos md ON ((c.id_modelos = md.id)));
+
+
+ALTER TABLE public.vw_total_pagar OWNER TO postgres;
+
+--
+-- TOC entry 3273 (class 2604 OID 17093)
 -- Name: carros id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -316,7 +453,7 @@ ALTER TABLE ONLY public.carros ALTER COLUMN id SET DEFAULT nextval('public.carro
 
 
 --
--- TOC entry 3245 (class 2604 OID 17146)
+-- TOC entry 3277 (class 2604 OID 17146)
 -- Name: cliente_enderecos id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -324,7 +461,7 @@ ALTER TABLE ONLY public.cliente_enderecos ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
--- TOC entry 3242 (class 2604 OID 17109)
+-- TOC entry 3274 (class 2604 OID 17109)
 -- Name: clientes id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -332,7 +469,7 @@ ALTER TABLE ONLY public.clientes ALTER COLUMN id SET DEFAULT nextval('public.cli
 
 
 --
--- TOC entry 3243 (class 2604 OID 17120)
+-- TOC entry 3275 (class 2604 OID 17120)
 -- Name: enderecos id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -340,7 +477,7 @@ ALTER TABLE ONLY public.enderecos ALTER COLUMN id SET DEFAULT nextval('public.en
 
 
 --
--- TOC entry 3244 (class 2604 OID 17129)
+-- TOC entry 3276 (class 2604 OID 17129)
 -- Name: locacao id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -348,7 +485,7 @@ ALTER TABLE ONLY public.locacao ALTER COLUMN id SET DEFAULT nextval('public.loca
 
 
 --
--- TOC entry 3239 (class 2604 OID 17074)
+-- TOC entry 3271 (class 2604 OID 17074)
 -- Name: marcas id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -356,7 +493,7 @@ ALTER TABLE ONLY public.marcas ALTER COLUMN id SET DEFAULT nextval('public.marca
 
 
 --
--- TOC entry 3240 (class 2604 OID 17081)
+-- TOC entry 3272 (class 2604 OID 17081)
 -- Name: modelos id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -364,20 +501,20 @@ ALTER TABLE ONLY public.modelos ALTER COLUMN id SET DEFAULT nextval('public.mode
 
 
 --
--- TOC entry 3416 (class 0 OID 17090)
+-- TOC entry 3456 (class 0 OID 17090)
 -- Dependencies: 214
 -- Data for Name: carros; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.carros VALUES (1, 1, 'Branco', 'NCF-0572', '200,00 R$', '84630511447', '1993');
-INSERT INTO public.carros VALUES (2, 2, 'Azul', 'HLS-0163', '150,00 R$', '99603504409', '1991');
-INSERT INTO public.carros VALUES (3, 3, 'Preto', 'IDH-4080', '220,00 R$', '20449423985', '2006');
-INSERT INTO public.carros VALUES (4, 4, 'Cinza', 'LWN-4684', '190,00 R$', '01498532656', '1993');
-INSERT INTO public.carros VALUES (5, 5, 'Prata', 'KQG-4351', '200,00 R$', '89371501166', '1998');
+INSERT INTO public.carros VALUES (1, 1, 'Branco', 'NCF-0572', 120.00, '84630511447', '1993');
+INSERT INTO public.carros VALUES (2, 2, 'Azul', 'HLS-0163', 180.00, '99603504409', '1991');
+INSERT INTO public.carros VALUES (3, 3, 'Preto', 'IDH-4080', 250.00, '20449423985', '2006');
+INSERT INTO public.carros VALUES (4, 4, 'Cinza', 'LWN-4684', 80.00, '01498532656', '1993');
+INSERT INTO public.carros VALUES (5, 5, 'Prata', 'KQG-4351', 150.00, '89371501166', '1998');
 
 
 --
--- TOC entry 3424 (class 0 OID 17143)
+-- TOC entry 3464 (class 0 OID 17143)
 -- Dependencies: 222
 -- Data for Name: cliente_enderecos; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -445,7 +582,7 @@ INSERT INTO public.cliente_enderecos VALUES (60, 60, 60);
 
 
 --
--- TOC entry 3418 (class 0 OID 17106)
+-- TOC entry 3458 (class 0 OID 17106)
 -- Dependencies: 216
 -- Data for Name: clientes; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -513,7 +650,7 @@ INSERT INTO public.clientes VALUES (60, 'Tiago Ian Márcio Ramos', '128.883.124-
 
 
 --
--- TOC entry 3420 (class 0 OID 17117)
+-- TOC entry 3460 (class 0 OID 17117)
 -- Dependencies: 218
 -- Data for Name: enderecos; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -581,7 +718,7 @@ INSERT INTO public.enderecos VALUES (60, '66813-030', 'Belém', 'Campina de Icoa
 
 
 --
--- TOC entry 3422 (class 0 OID 17126)
+-- TOC entry 3462 (class 0 OID 17126)
 -- Dependencies: 220
 -- Data for Name: locacao; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -594,7 +731,7 @@ INSERT INTO public.locacao VALUES (5, 5, 5, '2022-05-22', '2022-05-28');
 
 
 --
--- TOC entry 3412 (class 0 OID 17071)
+-- TOC entry 3452 (class 0 OID 17071)
 -- Dependencies: 210
 -- Data for Name: marcas; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -607,7 +744,7 @@ INSERT INTO public.marcas VALUES (2, 'Suzuki');
 
 
 --
--- TOC entry 3414 (class 0 OID 17078)
+-- TOC entry 3454 (class 0 OID 17078)
 -- Dependencies: 212
 -- Data for Name: modelos; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -620,7 +757,7 @@ INSERT INTO public.modelos VALUES (5, 5, 'Grand Vitara 2.0 16V 4x2/4x4 5p Mec');
 
 
 --
--- TOC entry 3437 (class 0 OID 0)
+-- TOC entry 3477 (class 0 OID 0)
 -- Dependencies: 213
 -- Name: carros_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -629,7 +766,7 @@ SELECT pg_catalog.setval('public.carros_id_seq', 3, true);
 
 
 --
--- TOC entry 3438 (class 0 OID 0)
+-- TOC entry 3478 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: cliente_enderecos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -638,7 +775,7 @@ SELECT pg_catalog.setval('public.cliente_enderecos_id_seq', 60, true);
 
 
 --
--- TOC entry 3439 (class 0 OID 0)
+-- TOC entry 3479 (class 0 OID 0)
 -- Dependencies: 215
 -- Name: clientes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -647,7 +784,7 @@ SELECT pg_catalog.setval('public.clientes_id_seq', 60, true);
 
 
 --
--- TOC entry 3440 (class 0 OID 0)
+-- TOC entry 3480 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: enderecos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -656,7 +793,7 @@ SELECT pg_catalog.setval('public.enderecos_id_seq', 60, true);
 
 
 --
--- TOC entry 3441 (class 0 OID 0)
+-- TOC entry 3481 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: locacao_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -665,7 +802,7 @@ SELECT pg_catalog.setval('public.locacao_id_seq', 5, true);
 
 
 --
--- TOC entry 3442 (class 0 OID 0)
+-- TOC entry 3482 (class 0 OID 0)
 -- Dependencies: 209
 -- Name: marcas_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -674,7 +811,7 @@ SELECT pg_catalog.setval('public.marcas_id_seq', 6, true);
 
 
 --
--- TOC entry 3443 (class 0 OID 0)
+-- TOC entry 3483 (class 0 OID 0)
 -- Dependencies: 211
 -- Name: modelos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -683,7 +820,7 @@ SELECT pg_catalog.setval('public.modelos_id_seq', 7, true);
 
 
 --
--- TOC entry 3251 (class 2606 OID 17097)
+-- TOC entry 3283 (class 2606 OID 17097)
 -- Name: carros carros_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -692,7 +829,7 @@ ALTER TABLE ONLY public.carros
 
 
 --
--- TOC entry 3253 (class 2606 OID 17099)
+-- TOC entry 3285 (class 2606 OID 17099)
 -- Name: carros carros_placa_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -701,7 +838,7 @@ ALTER TABLE ONLY public.carros
 
 
 --
--- TOC entry 3265 (class 2606 OID 17148)
+-- TOC entry 3297 (class 2606 OID 17148)
 -- Name: cliente_enderecos cliente_enderecos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -710,7 +847,7 @@ ALTER TABLE ONLY public.cliente_enderecos
 
 
 --
--- TOC entry 3255 (class 2606 OID 17113)
+-- TOC entry 3287 (class 2606 OID 17113)
 -- Name: clientes clientes_cpf_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -719,7 +856,7 @@ ALTER TABLE ONLY public.clientes
 
 
 --
--- TOC entry 3257 (class 2606 OID 17111)
+-- TOC entry 3289 (class 2606 OID 17111)
 -- Name: clientes clientes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -728,7 +865,7 @@ ALTER TABLE ONLY public.clientes
 
 
 --
--- TOC entry 3259 (class 2606 OID 17115)
+-- TOC entry 3291 (class 2606 OID 17115)
 -- Name: clientes clientes_telefone_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -737,7 +874,7 @@ ALTER TABLE ONLY public.clientes
 
 
 --
--- TOC entry 3261 (class 2606 OID 17124)
+-- TOC entry 3293 (class 2606 OID 17124)
 -- Name: enderecos enderecos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -746,7 +883,7 @@ ALTER TABLE ONLY public.enderecos
 
 
 --
--- TOC entry 3263 (class 2606 OID 17131)
+-- TOC entry 3295 (class 2606 OID 17131)
 -- Name: locacao locacao_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -755,7 +892,7 @@ ALTER TABLE ONLY public.locacao
 
 
 --
--- TOC entry 3247 (class 2606 OID 17076)
+-- TOC entry 3279 (class 2606 OID 17076)
 -- Name: marcas marcas_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -764,7 +901,7 @@ ALTER TABLE ONLY public.marcas
 
 
 --
--- TOC entry 3249 (class 2606 OID 17083)
+-- TOC entry 3281 (class 2606 OID 17083)
 -- Name: modelos modelos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -773,7 +910,7 @@ ALTER TABLE ONLY public.modelos
 
 
 --
--- TOC entry 3269 (class 2606 OID 17137)
+-- TOC entry 3301 (class 2606 OID 17137)
 -- Name: locacao fk_carros_to_locacao; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -782,7 +919,7 @@ ALTER TABLE ONLY public.locacao
 
 
 --
--- TOC entry 3270 (class 2606 OID 17149)
+-- TOC entry 3302 (class 2606 OID 17149)
 -- Name: cliente_enderecos fk_clientes_to_cliente_enderecos; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -791,7 +928,7 @@ ALTER TABLE ONLY public.cliente_enderecos
 
 
 --
--- TOC entry 3268 (class 2606 OID 17132)
+-- TOC entry 3300 (class 2606 OID 17132)
 -- Name: locacao fk_clientes_to_locacao; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -800,7 +937,7 @@ ALTER TABLE ONLY public.locacao
 
 
 --
--- TOC entry 3271 (class 2606 OID 17154)
+-- TOC entry 3303 (class 2606 OID 17154)
 -- Name: cliente_enderecos fk_enderecos_to_cliente_enderecos; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -809,7 +946,7 @@ ALTER TABLE ONLY public.cliente_enderecos
 
 
 --
--- TOC entry 3266 (class 2606 OID 17084)
+-- TOC entry 3298 (class 2606 OID 17084)
 -- Name: modelos fk_marcas_to_modelos; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -818,7 +955,7 @@ ALTER TABLE ONLY public.modelos
 
 
 --
--- TOC entry 3267 (class 2606 OID 17100)
+-- TOC entry 3299 (class 2606 OID 17100)
 -- Name: carros fk_modelos_to_carros; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -826,7 +963,7 @@ ALTER TABLE ONLY public.carros
     ADD CONSTRAINT fk_modelos_to_carros FOREIGN KEY (id_modelos) REFERENCES public.modelos(id);
 
 
--- Completed on 2022-06-30 14:19:14 -03
+-- Completed on 2022-07-01 13:57:37 -03
 
 --
 -- PostgreSQL database dump complete
